@@ -330,7 +330,18 @@ class phpFastCache {
         }
 
 
-        $this->driver = new $driver($this->option);
+        try {
+            $this->driver = new $driver($this->option);
+        } catch (Exception $e) {
+            if (isset($this->option['fallback'][$storage])) {
+                $storage = $this->autoDriver();
+                self::$storage = $storage;
+                $driver = "phpfastcache_".$storage;
+                require_once(dirname(__FILE__)."/drivers/".$storage.".php");
+                $this->option("storage",$storage);
+                $this->driver = new $driver($this->option); 
+            }
+        }
         $this->driver->is_driver = true;
 
     }
